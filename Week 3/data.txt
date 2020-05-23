@@ -1,0 +1,664 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "dataset-daily-week-3.ipynb",
+      "provenance": [],
+      "collapsed_sections": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "z1HR-CN9S11C",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 1000
+        },
+        "outputId": "5c6d2423-3ae8-4e8c-abc3-b98f18b2a656"
+      },
+      "source": [
+        "!pip install transformers\n",
+        "!pip install nlp\n",
+        "!pip install tensorflow-text\n",
+        "import nlp\n",
+        "import transformers"
+      ],
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Requirement already satisfied: transformers in /usr/local/lib/python3.6/dist-packages (2.10.0)\n",
+            "Requirement already satisfied: sacremoses in /usr/local/lib/python3.6/dist-packages (from transformers) (0.0.43)\n",
+            "Requirement already satisfied: requests in /usr/local/lib/python3.6/dist-packages (from transformers) (2.23.0)\n",
+            "Requirement already satisfied: tokenizers==0.7.0 in /usr/local/lib/python3.6/dist-packages (from transformers) (0.7.0)\n",
+            "Requirement already satisfied: filelock in /usr/local/lib/python3.6/dist-packages (from transformers) (3.0.12)\n",
+            "Requirement already satisfied: regex!=2019.12.17 in /usr/local/lib/python3.6/dist-packages (from transformers) (2019.12.20)\n",
+            "Requirement already satisfied: tqdm>=4.27 in /usr/local/lib/python3.6/dist-packages (from transformers) (4.41.1)\n",
+            "Requirement already satisfied: numpy in /usr/local/lib/python3.6/dist-packages (from transformers) (1.18.4)\n",
+            "Requirement already satisfied: sentencepiece in /usr/local/lib/python3.6/dist-packages (from transformers) (0.1.91)\n",
+            "Requirement already satisfied: dataclasses; python_version < \"3.7\" in /usr/local/lib/python3.6/dist-packages (from transformers) (0.7)\n",
+            "Requirement already satisfied: six in /usr/local/lib/python3.6/dist-packages (from sacremoses->transformers) (1.12.0)\n",
+            "Requirement already satisfied: joblib in /usr/local/lib/python3.6/dist-packages (from sacremoses->transformers) (0.15.1)\n",
+            "Requirement already satisfied: click in /usr/local/lib/python3.6/dist-packages (from sacremoses->transformers) (7.1.2)\n",
+            "Requirement already satisfied: chardet<4,>=3.0.2 in /usr/local/lib/python3.6/dist-packages (from requests->transformers) (3.0.4)\n",
+            "Requirement already satisfied: urllib3!=1.25.0,!=1.25.1,<1.26,>=1.21.1 in /usr/local/lib/python3.6/dist-packages (from requests->transformers) (1.24.3)\n",
+            "Requirement already satisfied: idna<3,>=2.5 in /usr/local/lib/python3.6/dist-packages (from requests->transformers) (2.9)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.6/dist-packages (from requests->transformers) (2020.4.5.1)\n",
+            "Requirement already satisfied: nlp in /usr/local/lib/python3.6/dist-packages (0.1.0)\n",
+            "Requirement already satisfied: filelock in /usr/local/lib/python3.6/dist-packages (from nlp) (3.0.12)\n",
+            "Requirement already satisfied: dataclasses; python_version < \"3.7\" in /usr/local/lib/python3.6/dist-packages (from nlp) (0.7)\n",
+            "Requirement already satisfied: numpy in /usr/local/lib/python3.6/dist-packages (from nlp) (1.18.4)\n",
+            "Requirement already satisfied: requests>=2.19.0 in /usr/local/lib/python3.6/dist-packages (from nlp) (2.23.0)\n",
+            "Requirement already satisfied: tqdm>=4.27 in /usr/local/lib/python3.6/dist-packages (from nlp) (4.41.1)\n",
+            "Requirement already satisfied: dill in /usr/local/lib/python3.6/dist-packages (from nlp) (0.3.1.1)\n",
+            "Requirement already satisfied: pyarrow>=0.16.0 in /usr/local/lib/python3.6/dist-packages (from nlp) (0.17.1)\n",
+            "Requirement already satisfied: idna<3,>=2.5 in /usr/local/lib/python3.6/dist-packages (from requests>=2.19.0->nlp) (2.9)\n",
+            "Requirement already satisfied: urllib3!=1.25.0,!=1.25.1,<1.26,>=1.21.1 in /usr/local/lib/python3.6/dist-packages (from requests>=2.19.0->nlp) (1.24.3)\n",
+            "Requirement already satisfied: chardet<4,>=3.0.2 in /usr/local/lib/python3.6/dist-packages (from requests>=2.19.0->nlp) (3.0.4)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.6/dist-packages (from requests>=2.19.0->nlp) (2020.4.5.1)\n",
+            "Requirement already satisfied: tensorflow-text in /usr/local/lib/python3.6/dist-packages (2.2.0)\n",
+            "Requirement already satisfied: tensorflow<2.3,>=2.2.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow-text) (2.2.0)\n",
+            "Requirement already satisfied: protobuf>=3.8.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (3.10.0)\n",
+            "Requirement already satisfied: wheel>=0.26; python_version >= \"3\" in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (0.34.2)\n",
+            "Requirement already satisfied: opt-einsum>=2.3.2 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (3.2.1)\n",
+            "Requirement already satisfied: gast==0.3.3 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (0.3.3)\n",
+            "Requirement already satisfied: keras-preprocessing>=1.1.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (1.1.2)\n",
+            "Requirement already satisfied: scipy==1.4.1; python_version >= \"3\" in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (1.4.1)\n",
+            "Requirement already satisfied: h5py<2.11.0,>=2.10.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (2.10.0)\n",
+            "Requirement already satisfied: tensorflow-estimator<2.3.0,>=2.2.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (2.2.0)\n",
+            "Requirement already satisfied: termcolor>=1.1.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (1.1.0)\n",
+            "Requirement already satisfied: astunparse==1.6.3 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (1.6.3)\n",
+            "Requirement already satisfied: tensorboard<2.3.0,>=2.2.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (2.2.1)\n",
+            "Requirement already satisfied: absl-py>=0.7.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (0.9.0)\n",
+            "Requirement already satisfied: grpcio>=1.8.6 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (1.29.0)\n",
+            "Requirement already satisfied: numpy<2.0,>=1.16.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (1.18.4)\n",
+            "Requirement already satisfied: wrapt>=1.11.1 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (1.12.1)\n",
+            "Requirement already satisfied: google-pasta>=0.1.8 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (0.2.0)\n",
+            "Requirement already satisfied: six>=1.12.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3,>=2.2.0->tensorflow-text) (1.12.0)\n",
+            "Requirement already satisfied: setuptools in /usr/local/lib/python3.6/dist-packages (from protobuf>=3.8.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (46.3.0)\n",
+            "Requirement already satisfied: requests<3,>=2.21.0 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (2.23.0)\n",
+            "Requirement already satisfied: google-auth<2,>=1.6.3 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (1.7.2)\n",
+            "Requirement already satisfied: google-auth-oauthlib<0.5,>=0.4.1 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (0.4.1)\n",
+            "Requirement already satisfied: tensorboard-plugin-wit>=1.6.0 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (1.6.0.post3)\n",
+            "Requirement already satisfied: werkzeug>=0.11.15 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (1.0.1)\n",
+            "Requirement already satisfied: markdown>=2.6.8 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (3.2.2)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.6/dist-packages (from requests<3,>=2.21.0->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (2020.4.5.1)\n",
+            "Requirement already satisfied: urllib3!=1.25.0,!=1.25.1,<1.26,>=1.21.1 in /usr/local/lib/python3.6/dist-packages (from requests<3,>=2.21.0->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (1.24.3)\n",
+            "Requirement already satisfied: chardet<4,>=3.0.2 in /usr/local/lib/python3.6/dist-packages (from requests<3,>=2.21.0->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (3.0.4)\n",
+            "Requirement already satisfied: idna<3,>=2.5 in /usr/local/lib/python3.6/dist-packages (from requests<3,>=2.21.0->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (2.9)\n",
+            "Requirement already satisfied: rsa<4.1,>=3.1.4 in /usr/local/lib/python3.6/dist-packages (from google-auth<2,>=1.6.3->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (4.0)\n",
+            "Requirement already satisfied: pyasn1-modules>=0.2.1 in /usr/local/lib/python3.6/dist-packages (from google-auth<2,>=1.6.3->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (0.2.8)\n",
+            "Requirement already satisfied: cachetools<3.2,>=2.0.0 in /usr/local/lib/python3.6/dist-packages (from google-auth<2,>=1.6.3->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (3.1.1)\n",
+            "Requirement already satisfied: requests-oauthlib>=0.7.0 in /usr/local/lib/python3.6/dist-packages (from google-auth-oauthlib<0.5,>=0.4.1->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (1.3.0)\n",
+            "Requirement already satisfied: importlib-metadata; python_version < \"3.8\" in /usr/local/lib/python3.6/dist-packages (from markdown>=2.6.8->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (1.6.0)\n",
+            "Requirement already satisfied: pyasn1>=0.1.3 in /usr/local/lib/python3.6/dist-packages (from rsa<4.1,>=3.1.4->google-auth<2,>=1.6.3->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (0.4.8)\n",
+            "Requirement already satisfied: oauthlib>=3.0.0 in /usr/local/lib/python3.6/dist-packages (from requests-oauthlib>=0.7.0->google-auth-oauthlib<0.5,>=0.4.1->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (3.1.0)\n",
+            "Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.6/dist-packages (from importlib-metadata; python_version < \"3.8\"->markdown>=2.6.8->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3,>=2.2.0->tensorflow-text) (3.1.0)\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "0M3V7U6STmdt",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 54
+        },
+        "outputId": "ede64084-6916-4a93-b9d8-e9bcf5919bae"
+      },
+      "source": [
+        "# View all the available datasets \n",
+        "print([dataset.id for dataset in nlp.list_datasets()])"
+      ],
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "['aeslc', 'ai2_arc', 'anli', 'art', 'billsum', 'blimp', 'blog_authorship_corpus', 'boolq', 'break_data', 'cfq', 'civil_comments', 'cmrc2018', 'cnn_dailymail', 'coarse_discourse', 'com_qa', 'commonsense_qa', 'coqa', 'cornell_movie_dialog', 'cos_e', 'cosmos_qa', 'crime_and_punish', 'csv', 'definite_pronoun_resolution', 'discofuse', 'drop', 'empathetic_dialogues', 'eraser_multi_rc', 'esnli', 'event2Mind', 'flores', 'fquad', 'gap', 'germeval_14', 'gigaword', 'glue', 'hansards', 'hellaswag', 'imdb', 'jeopardy', 'json', 'kor_nli', 'lc_quad', 'librispeech_lm', 'lm1b', 'math_dataset', 'math_qa', 'mlqa', 'movie_rationales', 'multi_news', 'multi_nli', 'multi_nli_mismatch', 'newsroom', 'openbookqa', 'opinosis', 'para_crawl', 'qa4mre', 'qangaroo', 'qasc', 'quarel', 'quartz', 'quoref', 'race', 'reclor', 'reddit', 'reddit_tifu', 'scan', 'scicite', 'scientific_papers', 'scifact', 'sciq', 'scitail', 'sentiment140', 'snli', 'social_i_qa', 'squad', 'squad_it', 'squad_v1_pt', 'squad_v2', 'super_glue', 'ted_hrlr', 'ted_multi', 'tiny_shakespeare', 'trivia_qa', 'tydiqa', 'ubuntu_dialogs_corpus', 'webis/tl_dr', 'wiki40b', 'wiki_qa', 'wiki_split', 'wikihow', 'wikipedia', 'wikitext', 'winogrande', 'wiqa', 'wmt14', 'wmt15', 'wmt16', 'wmt17', 'wmt18', 'wmt19', 'wmt_t2t', 'x_stance', 'xcopa', 'xnli', 'xquad', 'xsum', 'xtreme', 'yelp_polarity']\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "FHhqh8-FTowS",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        },
+        "outputId": "078e539c-5dc3-434f-8c31-1b10675d0275"
+      },
+      "source": [
+        "# Load dataset\n",
+        "news_dataset = nlp.load_dataset('civil_comments')"
+      ],
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Using custom data configuration default\n"
+          ],
+          "name": "stderr"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "U6WtBsjFTyaG",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 67
+        },
+        "outputId": "23138a12-6d19-4892-8cdc-54ffcff236c1"
+      },
+      "source": [
+        "!ls /root/.cache/huggingface/datasets/civil_comments/default/0.9.0"
+      ],
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "cache-5f029836499c4fed34cb691fa10f23e6.arrow  civil_comments-validation.arrow\n",
+            "civil_comments-test.arrow\t\t      dataset_info.json\n",
+            "civil_comments-train.arrow\t\t      LICENSE\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "rEy8X8OPZLhT",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 50
+        },
+        "outputId": "e45b8fb1-a0e3-4256-e7e4-fe06c1b18960"
+      },
+      "source": [
+        "print('training set contains: ' + str(len(news_dataset['train'])) + ' examples')\n",
+        "print('test set contains: ' + str(len(news_dataset['test'])) + ' examples')"
+      ],
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "training set contains: 1804874 examples\n",
+            "test set contains: 97320 examples\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "-ZYi4JSXZZLT",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 70
+        },
+        "outputId": "89bfe8e5-8c13-4de9-9a5a-6000cafe9718"
+      },
+      "source": [
+        "print('Positive example.')\n",
+        "print(news_dataset['train'][0])"
+      ],
+      "execution_count": 6,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Positive example.\n",
+            "{'text': \"This is so cool. It's like, 'would you want your mother to read this??' Really great idea, well done!\", 'toxicity': 0.0, 'severe_toxicity': 0.0, 'obscene': 0.0, 'threat': 0.0, 'insult': 0.0, 'identity_attack': 0.0, 'sexual_explicit': 0.0}\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "6hVgvTUwZcs1",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 70
+        },
+        "outputId": "d0618889-b094-4bb4-dc5c-ac29f2a4a291"
+      },
+      "source": [
+        "print('Negative example.')\n",
+        "print(news_dataset['train'][4])"
+      ],
+      "execution_count": 7,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Negative example.\n",
+            "{'text': 'haha you guys are a bunch of losers.', 'toxicity': 0.8936170339584351, 'severe_toxicity': 0.021276595070958138, 'obscene': 0.0, 'threat': 0.0, 'insult': 0.8723404407501221, 'identity_attack': 0.021276595070958138, 'sexual_explicit': 0.0}\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "mERONzzHFuj3",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        },
+        "outputId": "9b181440-cb2b-40ed-a19f-31455b33a2fd"
+      },
+      "source": [
+        "type(news_dataset['train'])"
+      ],
+      "execution_count": 8,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "nlp.arrow_dataset.Dataset"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 8
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "aUHAK45nClpQ",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 675
+        },
+        "outputId": "d1462963-be7b-4a50-8c31-7707879fba15"
+      },
+      "source": [
+        "!pip install tensorflow-io"
+      ],
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Requirement already satisfied: tensorflow-io in /usr/local/lib/python3.6/dist-packages (0.13.0)\n",
+            "Requirement already satisfied: tensorflow<2.3.0,>=2.2.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow-io) (2.2.0)\n",
+            "Requirement already satisfied: h5py<2.11.0,>=2.10.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (2.10.0)\n",
+            "Requirement already satisfied: gast==0.3.3 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (0.3.3)\n",
+            "Requirement already satisfied: grpcio>=1.8.6 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.29.0)\n",
+            "Requirement already satisfied: tensorboard<2.3.0,>=2.2.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (2.2.1)\n",
+            "Requirement already satisfied: numpy<2.0,>=1.16.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.18.4)\n",
+            "Requirement already satisfied: google-pasta>=0.1.8 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (0.2.0)\n",
+            "Requirement already satisfied: protobuf>=3.8.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (3.10.0)\n",
+            "Requirement already satisfied: termcolor>=1.1.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.1.0)\n",
+            "Requirement already satisfied: wrapt>=1.11.1 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.12.1)\n",
+            "Requirement already satisfied: six>=1.12.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.12.0)\n",
+            "Requirement already satisfied: keras-preprocessing>=1.1.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.1.2)\n",
+            "Requirement already satisfied: wheel>=0.26; python_version >= \"3\" in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (0.34.2)\n",
+            "Requirement already satisfied: absl-py>=0.7.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (0.9.0)\n",
+            "Requirement already satisfied: scipy==1.4.1; python_version >= \"3\" in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.4.1)\n",
+            "Requirement already satisfied: tensorflow-estimator<2.3.0,>=2.2.0 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (2.2.0)\n",
+            "Requirement already satisfied: astunparse==1.6.3 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.6.3)\n",
+            "Requirement already satisfied: opt-einsum>=2.3.2 in /usr/local/lib/python3.6/dist-packages (from tensorflow<2.3.0,>=2.2.0->tensorflow-io) (3.2.1)\n",
+            "Requirement already satisfied: google-auth-oauthlib<0.5,>=0.4.1 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (0.4.1)\n",
+            "Requirement already satisfied: setuptools>=41.0.0 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (46.3.0)\n",
+            "Requirement already satisfied: requests<3,>=2.21.0 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (2.23.0)\n",
+            "Requirement already satisfied: tensorboard-plugin-wit>=1.6.0 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.6.0.post3)\n",
+            "Requirement already satisfied: markdown>=2.6.8 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (3.2.2)\n",
+            "Requirement already satisfied: google-auth<2,>=1.6.3 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.7.2)\n",
+            "Requirement already satisfied: werkzeug>=0.11.15 in /usr/local/lib/python3.6/dist-packages (from tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.0.1)\n",
+            "Requirement already satisfied: requests-oauthlib>=0.7.0 in /usr/local/lib/python3.6/dist-packages (from google-auth-oauthlib<0.5,>=0.4.1->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.3.0)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.6/dist-packages (from requests<3,>=2.21.0->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (2020.4.5.1)\n",
+            "Requirement already satisfied: urllib3!=1.25.0,!=1.25.1,<1.26,>=1.21.1 in /usr/local/lib/python3.6/dist-packages (from requests<3,>=2.21.0->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.24.3)\n",
+            "Requirement already satisfied: chardet<4,>=3.0.2 in /usr/local/lib/python3.6/dist-packages (from requests<3,>=2.21.0->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (3.0.4)\n",
+            "Requirement already satisfied: idna<3,>=2.5 in /usr/local/lib/python3.6/dist-packages (from requests<3,>=2.21.0->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (2.9)\n",
+            "Requirement already satisfied: importlib-metadata; python_version < \"3.8\" in /usr/local/lib/python3.6/dist-packages (from markdown>=2.6.8->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (1.6.0)\n",
+            "Requirement already satisfied: rsa<4.1,>=3.1.4 in /usr/local/lib/python3.6/dist-packages (from google-auth<2,>=1.6.3->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (4.0)\n",
+            "Requirement already satisfied: cachetools<3.2,>=2.0.0 in /usr/local/lib/python3.6/dist-packages (from google-auth<2,>=1.6.3->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (3.1.1)\n",
+            "Requirement already satisfied: pyasn1-modules>=0.2.1 in /usr/local/lib/python3.6/dist-packages (from google-auth<2,>=1.6.3->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (0.2.8)\n",
+            "Requirement already satisfied: oauthlib>=3.0.0 in /usr/local/lib/python3.6/dist-packages (from requests-oauthlib>=0.7.0->google-auth-oauthlib<0.5,>=0.4.1->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (3.1.0)\n",
+            "Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.6/dist-packages (from importlib-metadata; python_version < \"3.8\"->markdown>=2.6.8->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (3.1.0)\n",
+            "Requirement already satisfied: pyasn1>=0.1.3 in /usr/local/lib/python3.6/dist-packages (from rsa<4.1,>=3.1.4->google-auth<2,>=1.6.3->tensorboard<2.3.0,>=2.2.0->tensorflow<2.3.0,>=2.2.0->tensorflow-io) (0.4.8)\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "HMU3aPnSZfnJ",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import tensorflow as tf\n",
+        "import tensorflow_datasets as tfds\n",
+        "import tensorflow_io.arrow as arrow_io"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "QF-SX7WaAFdj",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        },
+        "outputId": "dabf82fd-cb2a-4217-ccfa-006111a319dc"
+      },
+      "source": [
+        "tf.__version__"
+      ],
+      "execution_count": 11,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "'2.2.0'"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 11
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "MBOh7HIyFEnf",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "tokenizer = transformers.BertTokenizerFast.from_pretrained('bert-base-cased')"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "fhKjZEvEJoL3",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "def tokenize(batch_example):\n",
+        "  encodings = tokenizer.batch_encode_plus(batch_example['text'], pad_to_max_length=True)\n",
+        "  encodings.update({'toxicity': batch_example['toxicity']})\n",
+        "  return encodings"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "k9jmnBeuKTJr",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "train_dataset = news_dataset['train'].map(tokenize, batched=True)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "qJF148t-_OiJ",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "columns = ['input_ids', 'token_type_ids', 'attention_mask', 'toxicity']\n",
+        "train_dataset.set_format(type='tensorflow', columns=columns)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "cRnEw8LVAQvf",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "train_dataset = train_dataset[:100000]"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "UIey85duKhTv",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "features = {x: train_dataset[x] for x in columns[:3]}\n",
+        "labels = {'output_1': train_dataset['toxicity']}\n",
+        "text_train = tf.data.Dataset.from_tensor_slices((features, labels)).batch(8)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "olVuzf6SLfE4",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "test_dataset = news_dataset['test'].map(tokenize, batched=True)\n",
+        "test_dataset.set_format(type='tensorflow', columns=columns)\n",
+        "test_dataset = test_dataset[:20000]\n",
+        "test_features = {x: test_dataset[x] for x in columns[:3]}\n",
+        "test_labels = {'output_1': test_dataset['toxicity']}\n",
+        "text_test = tf.data.Dataset.from_tensor_slices((test_features, test_labels)).batch(8)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "SXN7wweOI74W",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "FsuNXkAIMP7-",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from transformers import TFBertForSequenceClassification\n",
+        "import tensorflow_text\n",
+        "\n",
+        "base_model = TFBertForSequenceClassification.from_pretrained('bert-base-cased')"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "IO9jD7E_I1ch",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model = tf.keras.models.Sequential([tf.keras.layers.Input(shape=[None], ragged=True, dtype='int64'), tensorflow_text.keras.layers.ToDense(), base_model])"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "vhBotatqIyVu",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "loss_fn = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)\n",
+        "opt = tf.keras.optimizers.Adam(learning_rate=3e-5)\n",
+        "model.compile(optimizer=opt, loss=loss_fn, metrics=['accuracy'])"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "5PgwsD3jEyC7",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 218
+        },
+        "outputId": "fa629027-2cfb-471d-af9d-1d719769e771"
+      },
+      "source": [
+        "model.summary()"
+      ],
+      "execution_count": 22,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Model: \"sequential\"\n",
+            "_________________________________________________________________\n",
+            "Layer (type)                 Output Shape              Param #   \n",
+            "=================================================================\n",
+            "to_dense (ToDense)           (None, None)              0         \n",
+            "_________________________________________________________________\n",
+            "tf_bert_for_sequence_classif ((None, 2),)              108311810 \n",
+            "=================================================================\n",
+            "Total params: 108,311,810\n",
+            "Trainable params: 108,311,810\n",
+            "Non-trainable params: 0\n",
+            "_________________________________________________________________\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "pzqAm5ODMgky",
+        "colab_type": "code",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 740
+        },
+        "outputId": "6373209a-e36f-4b81-f0fc-3d2700628476"
+      },
+      "source": [
+        "model.fit(text_train, validation_data=text_test, epochs=10, steps_per_epoch=3)"
+      ],
+      "execution_count": 23,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Epoch 1/10\n"
+          ],
+          "name": "stdout"
+        },
+        {
+          "output_type": "error",
+          "ename": "KeyError",
+          "evalue": "ignored",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mKeyError\u001b[0m                                  Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-23-e53b7b748f7b>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0mmodel\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mfit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtext_train\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mvalidation_data\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mtext_test\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mepochs\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;36m10\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0msteps_per_epoch\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;36m3\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/training.py\u001b[0m in \u001b[0;36m_method_wrapper\u001b[0;34m(self, *args, **kwargs)\u001b[0m\n\u001b[1;32m     64\u001b[0m   \u001b[0;32mdef\u001b[0m \u001b[0m_method_wrapper\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkwargs\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     65\u001b[0m     \u001b[0;32mif\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_in_multi_worker_mode\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m  \u001b[0;31m# pylint: disable=protected-access\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 66\u001b[0;31m       \u001b[0;32mreturn\u001b[0m \u001b[0mmethod\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkwargs\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     67\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     68\u001b[0m     \u001b[0;31m# Running inside `run_distribute_coordinator` already.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/training.py\u001b[0m in \u001b[0;36mfit\u001b[0;34m(self, x, y, batch_size, epochs, verbose, callbacks, validation_split, validation_data, shuffle, class_weight, sample_weight, initial_epoch, steps_per_epoch, validation_steps, validation_batch_size, validation_freq, max_queue_size, workers, use_multiprocessing)\u001b[0m\n\u001b[1;32m    846\u001b[0m                 batch_size=batch_size):\n\u001b[1;32m    847\u001b[0m               \u001b[0mcallbacks\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mon_train_batch_begin\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mstep\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 848\u001b[0;31m               \u001b[0mtmp_logs\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mtrain_function\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0miterator\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    849\u001b[0m               \u001b[0;31m# Catch OutOfRangeError for Datasets of unknown size.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    850\u001b[0m               \u001b[0;31m# This blocks until the batch has finished executing.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/def_function.py\u001b[0m in \u001b[0;36m__call__\u001b[0;34m(self, *args, **kwds)\u001b[0m\n\u001b[1;32m    578\u001b[0m         \u001b[0mxla_context\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mExit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    579\u001b[0m     \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 580\u001b[0;31m       \u001b[0mresult\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_call\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkwds\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    581\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    582\u001b[0m     \u001b[0;32mif\u001b[0m \u001b[0mtracing_count\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_get_tracing_count\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/def_function.py\u001b[0m in \u001b[0;36m_call\u001b[0;34m(self, *args, **kwds)\u001b[0m\n\u001b[1;32m    625\u001b[0m       \u001b[0;31m# This is the first call of __call__, so we have to initialize.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    626\u001b[0m       \u001b[0minitializers\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;34m[\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 627\u001b[0;31m       \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_initialize\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mkwds\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0madd_initializers_to\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0minitializers\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    628\u001b[0m     \u001b[0;32mfinally\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    629\u001b[0m       \u001b[0;31m# At this point we know that the initialization is complete (or less\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/def_function.py\u001b[0m in \u001b[0;36m_initialize\u001b[0;34m(self, args, kwds, add_initializers_to)\u001b[0m\n\u001b[1;32m    504\u001b[0m     self._concrete_stateful_fn = (\n\u001b[1;32m    505\u001b[0m         self._stateful_fn._get_concrete_function_internal_garbage_collected(  # pylint: disable=protected-access\n\u001b[0;32m--> 506\u001b[0;31m             *args, **kwds))\n\u001b[0m\u001b[1;32m    507\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    508\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0minvalid_creator_scope\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0munused_args\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0munused_kwds\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/function.py\u001b[0m in \u001b[0;36m_get_concrete_function_internal_garbage_collected\u001b[0;34m(self, *args, **kwargs)\u001b[0m\n\u001b[1;32m   2444\u001b[0m       \u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mkwargs\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2445\u001b[0m     \u001b[0;32mwith\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_lock\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 2446\u001b[0;31m       \u001b[0mgraph_function\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0m_\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0m_\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_maybe_define_function\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mkwargs\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   2447\u001b[0m     \u001b[0;32mreturn\u001b[0m \u001b[0mgraph_function\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2448\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/function.py\u001b[0m in \u001b[0;36m_maybe_define_function\u001b[0;34m(self, args, kwargs)\u001b[0m\n\u001b[1;32m   2775\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2776\u001b[0m       \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_function_cache\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mmissed\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0madd\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcall_context_key\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 2777\u001b[0;31m       \u001b[0mgraph_function\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_create_graph_function\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mkwargs\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   2778\u001b[0m       \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_function_cache\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mprimary\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0mcache_key\u001b[0m\u001b[0;34m]\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mgraph_function\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2779\u001b[0m       \u001b[0;32mreturn\u001b[0m \u001b[0mgraph_function\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mkwargs\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/function.py\u001b[0m in \u001b[0;36m_create_graph_function\u001b[0;34m(self, args, kwargs, override_flat_arg_shapes)\u001b[0m\n\u001b[1;32m   2665\u001b[0m             \u001b[0marg_names\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0marg_names\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2666\u001b[0m             \u001b[0moverride_flat_arg_shapes\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0moverride_flat_arg_shapes\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 2667\u001b[0;31m             capture_by_value=self._capture_by_value),\n\u001b[0m\u001b[1;32m   2668\u001b[0m         \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_function_attributes\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   2669\u001b[0m         \u001b[0;31m# Tell the ConcreteFunction to clean up its graph once it goes out of\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/framework/func_graph.py\u001b[0m in \u001b[0;36mfunc_graph_from_py_func\u001b[0;34m(name, python_func, args, kwargs, signature, func_graph, autograph, autograph_options, add_control_dependencies, arg_names, op_return_value, collections, capture_by_value, override_flat_arg_shapes)\u001b[0m\n\u001b[1;32m    979\u001b[0m         \u001b[0m_\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0moriginal_func\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mtf_decorator\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0munwrap\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mpython_func\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    980\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 981\u001b[0;31m       \u001b[0mfunc_outputs\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mpython_func\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0mfunc_args\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mfunc_kwargs\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    982\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    983\u001b[0m       \u001b[0;31m# invariant: `func_outputs` contains only Tensors, CompositeTensors,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/eager/def_function.py\u001b[0m in \u001b[0;36mwrapped_fn\u001b[0;34m(*args, **kwds)\u001b[0m\n\u001b[1;32m    439\u001b[0m         \u001b[0;31m# __wrapped__ allows AutoGraph to swap in a converted function. We give\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    440\u001b[0m         \u001b[0;31m# the function a weak reference to itself to avoid a reference cycle.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 441\u001b[0;31m         \u001b[0;32mreturn\u001b[0m \u001b[0mweak_wrapped_fn\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__wrapped__\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkwds\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    442\u001b[0m     \u001b[0mweak_wrapped_fn\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mweakref\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mref\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mwrapped_fn\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    443\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/tensorflow/python/framework/func_graph.py\u001b[0m in \u001b[0;36mwrapper\u001b[0;34m(*args, **kwargs)\u001b[0m\n\u001b[1;32m    966\u001b[0m           \u001b[0;32mexcept\u001b[0m \u001b[0mException\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m:\u001b[0m  \u001b[0;31m# pylint:disable=broad-except\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    967\u001b[0m             \u001b[0;32mif\u001b[0m \u001b[0mhasattr\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0me\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m\"ag_error_metadata\"\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 968\u001b[0;31m               \u001b[0;32mraise\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mag_error_metadata\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mto_exception\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0me\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    969\u001b[0m             \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    970\u001b[0m               \u001b[0;32mraise\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mKeyError\u001b[0m: in user code:\n\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/training.py:571 train_function  *\n        outputs = self.distribute_strategy.run(\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/distribute/distribute_lib.py:951 run  **\n        return self._extended.call_for_each_replica(fn, args=args, kwargs=kwargs)\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/distribute/distribute_lib.py:2290 call_for_each_replica\n        return self._call_for_each_replica(fn, args, kwargs)\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/distribute/distribute_lib.py:2649 _call_for_each_replica\n        return fn(*args, **kwargs)\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/training.py:531 train_step  **\n        y_pred = self(x, training=True)\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/base_layer.py:927 __call__\n        outputs = call_fn(cast_inputs, *args, **kwargs)\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/sequential.py:277 call\n        return super(Sequential, self).call(inputs, training=training, mask=mask)\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/network.py:719 call\n        convert_kwargs_to_constants=base_layer_utils.call_context().saving)\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/network.py:826 _run_internal_graph\n        inputs = self._flatten_to_reference_inputs(inputs)\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/network.py:926 _flatten_to_reference_inputs\n        return [tensors[inp._keras_history.layer.name] for inp in ref_inputs]\n    /usr/local/lib/python3.6/dist-packages/tensorflow/python/keras/engine/network.py:926 <listcomp>\n        return [tensors[inp._keras_history.layer.name] for inp in ref_inputs]\n\n    KeyError: 'input_1'\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "INK7QiOrEpBs",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": 0,
+      "outputs": []
+    }
+  ]
+}
